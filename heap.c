@@ -32,6 +32,24 @@ void chunk_list_insert(Chunk_List *list, void *start, size_t size)
   list->count +=1;
 }
 
+int chunk_list_find(const Chunk_List *list, void *ptr)
+{
+  int left = 0, right = list->count;
+  int mid = left + (right - 1) / 2;
+  while(mid >= left && mid <= right) {
+    if (list->chunks[mid].start > ptr) {
+      right = mid - 1;
+    } else if (list->chunks[mid].start < ptr) {
+      left = mid + 1;
+    } 
+    else {
+      return mid;
+    }
+    mid = left + (right - 1) / 2;
+  }
+  return -1;
+}
+
 void* heap_alloc(size_t size) {
   if (size > 0) {
     assert(heap_size + size <= HEAP_CAPACITY);
@@ -46,5 +64,10 @@ void* heap_alloc(size_t size) {
 }
 
 void heap_free(void *ptr) {
-  
+  const int index = chunk_list_find(&allocated_chunks, ptr);
+  assert(index >= 0);
+  chunk_list_insert(&freed_chunks, 
+                    allocated_chunks.chunks[index].start, 
+                    allocated_chunks.chunks[index].size);
+  chunk_list_remove(&allocated_chunks, (size_t)index);
 } 
