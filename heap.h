@@ -6,7 +6,27 @@
 #include <stdlib.h>
 
 /* Defines*/
-#define HEAP_CAPACITY_BYTES   524288 //The Heap capacity in bytes 512kb
+#define HEAP_CAPACITY   524288 //The Heap capacity in bytes 512kb
+#define CHUNK_LIST_CAP  8096
+
+/**
+ * @brief represents a memory chunk in the heap 
+ */
+typedef struct {
+  void* start; //Start address of the memory block.
+  size_t size; //Size of the memory block in bytes.
+}Chunk;
+
+
+/**
+ * @brief Manages a list of memory chunks in the heap. 
+ */
+typedef struct {
+  size_t count; // Number of chunks currently tracked
+  Chunk chunks[CHUNK_LIST_CAP]; // Array of memory chunks
+}Chunk_List;
+
+
 
 /**
  * @brief Allocates a block of memory from the heap.
@@ -32,4 +52,5 @@ void* heap_alloc(size_t size);
  * @param ptr Pointer to the memory block to be freed. If `ptr` is `NULL`, no action is taken. 
  */
 void heap_free(void* ptr);
+
 #endif //HEAP_H!
