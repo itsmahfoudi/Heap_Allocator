@@ -12,6 +12,7 @@ Chunk_List freed_chunks = {
     [0] = {.start = heap, .size = sizeof(heap)}
   },
 };
+Chunk_List tmp_chunks = {0};
 
 void chunk_list_dump(const Chunk_List *list) {
   printf("Chunks (%zu):\n", list->count);
@@ -63,8 +64,30 @@ void chunk_list_remove(Chunk_List *list, size_t index) {
   list->count -= 1;
 }
 
+void chunk_list_merge(Chunk_List *dst, const Chunk_List* src) {
+  dst->count = 0;
+  for (size_t i = 0; i < src->count; ++i) {
+    const Chunk chunk = src->chunks[i];
+    
+    if (dst->count > 0) {
+      Chunk *top_chunk = &dst->chunks[dst->count - 1];
+
+      if (top_chunk->start + top_chunk->size == chunk.start) {
+        top_chunk->size += chunk.size;
+      } else {
+        chunk_list_insert(dst, chunk.start, chunk.size);
+      }
+    } else {
+      chunk_list_insert(dst, chunk.start, chunk.size);
+    }
+  }
+}
+
 void* heap_alloc(size_t size) {
   if(size > 0) {
+    chunk_list_merge(&tmp_chunks, &freed_chunks);
+    freed_chunks = tmp_chunks;
+
     for (size_t i = 0; i < freed_chunks.count; ++i) {
       const Chunk chunk = freed_chunks.chunks[i];
       if (chunk.size >= size) {

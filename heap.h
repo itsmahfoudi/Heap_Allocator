@@ -50,4 +50,5 @@ int chunk_list_find(const Chunk_List* List, void* ptr);
 void chunk_list_remove(Chunk_List* list, size_t index);
 void chunk_list_insert(Chunk_List* list, void* start, size_t size);
 void chunk_list_dump(const Chunk_List* list);
+void chunk_list_merge(Chunk_List *dst, const Chunk_List* src);
 #endif //HEAP_H!
