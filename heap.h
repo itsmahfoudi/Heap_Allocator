@@ -30,11 +30,6 @@ typedef struct {
 
 /**
  * @brief Allocates a block of memory from the heap.
- * 
- * This function allocates a block of memory of the specified size from the heap.
- * The allocated memory is not initialized and must be cast to the appropriate
- * type by the caller.
- * 
  * @param size Size in bytes of the memory block to be allocated.
  * 
  * @return A pointer to the allocated memory block. Returns `NULL` if the allocation
@@ -43,14 +38,13 @@ typedef struct {
 void* heap_alloc(size_t size);
 
 /**
- * @brief Frees a previously allocated block of memory.
- * 
- * This function frees a block of memory that was previously allocated using
- * `heap_alloc()`. The memory block is returned to the heap and can be reused
- * for future allocations.
- * 
+ * @brief Frees a previously allocated block of memory. 
  * @param ptr Pointer to the memory block to be freed. If `ptr` is `NULL`, no action is taken. 
  */
 void heap_free(void* ptr);
 
+int chunk_list_find(const Chunk_List* List, void* ptr);
+void chunk_list_remove(Chunk_List* list, size_t index);
+void chunk_list_insert(Chunk_List* list, void* start, size_t size);
+void chunk_list_dump(const Chunk_List* list);
 #endif //HEAP_H!
