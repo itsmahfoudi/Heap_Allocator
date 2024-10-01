@@ -6,7 +6,12 @@ char heap[HEAP_CAPACITY] = {0};
 size_t heap_size = 0;
 
 Chunk_List allocated_chunks = {0};
-Chunk_List freed_chunks = {0};
+Chunk_List freed_chunks = {
+  .count = 1,
+  .chunks = {
+    [0] = {.start = heap, .size = sizeof(heap)}
+  },
+};
 
 void chunk_list_dump(const Chunk_List *list) {
   printf("Chunks (%zu):\n", list->count);
@@ -50,24 +55,44 @@ int chunk_list_find(const Chunk_List *list, void *ptr)
   return -1;
 }
 
+void chunk_list_remove(Chunk_List *list, size_t index) {
+  assert(index <= list->count);
+  for (size_t i = index; i < list->count - 1; ++i) {
+    list->chunks[i] = list->chunks[i+1];
+  }
+  list->count -= 1;
+}
+
 void* heap_alloc(size_t size) {
-  if (size > 0) {
-    assert(heap_size + size <= HEAP_CAPACITY);
-    void* ptr = heap + heap_size;
-    heap_size += size;
-    chunk_list_insert(&allocated_chunks, ptr, size);
-    return ptr;
+  if(size > 0) {
+    for (size_t i = 0; i < freed_chunks.count; ++i) {
+      const Chunk chunk = freed_chunks.chunks[i];
+      if (chunk.size >= size) {
+        chunk_list_remove(&freed_chunks, i);
+
+        chunk_list_insert(&allocated_chunks, chunk.start, size);
+        const size_t remaing_bytes = chunk.size - size;
+
+        if (remaing_bytes > 0) {
+          chunk_list_insert(&freed_chunks, chunk.start + size, remaing_bytes);
+        }
+      
+        return chunk.start;
+      }
+    } 
   }
-  else {
-    return NULL;
-  }
+  return NULL;
 }
 
 void heap_free(void *ptr) {
-  const int index = chunk_list_find(&allocated_chunks, ptr);
-  assert(index >= 0);
-  chunk_list_insert(&freed_chunks, 
+  if (ptr != NULL) {
+    const int index = chunk_list_find(&allocated_chunks, ptr);
+    assert(index >= 0);
+    chunk_list_insert(&freed_chunks, 
                     allocated_chunks.chunks[index].start, 
                     allocated_chunks.chunks[index].size);
-  chunk_list_remove(&allocated_chunks, (size_t)index);
-} 
+    chunk_list_remove(&allocated_chunks, (size_t)index); 
+  } else {
+
+  }
+}
